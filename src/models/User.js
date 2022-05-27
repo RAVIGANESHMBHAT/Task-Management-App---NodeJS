@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         lowercase: true,
         validate(value) {
-            if(!validator.isEmail(value)) {
+            if (!validator.isEmail(value)) {
                 throw new Error('Email is invalid')
             }
         }
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
             // if(value.length <=6) {
             //     throw new Error('Password must be greater than 6 characters.')
             // }
-            if(value.toLowerCase().includes("password")) {
+            if (value.toLowerCase().includes("password")) {
                 throw new Error('Password cannot contain "password".')
             }
         }
@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         validate(number) {
-            if(number < 0) {
+            if (number < 0) {
                 throw new Error('Age must be a positive number')
             }
         }
@@ -50,7 +50,10 @@ const userSchema = new mongoose.Schema({
             type: String,
             required: true
         }
-    }]
+    }],
+    avatar: {
+        type: Buffer
+    }
 }, {
     timestamps: true
 })
@@ -61,7 +64,7 @@ userSchema.virtual('tasks', {
     foreignField: 'owner'
 })
 
-userSchema.methods.toJSON = function() {
+userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject()
 
@@ -71,26 +74,26 @@ userSchema.methods.toJSON = function() {
     return userObject
 }
 
-userSchema.methods.generateAuthToken = async function() {
+userSchema.methods.generateAuthToken = async function () {
     const user = this
     const token = jwt.sign({_id: user._id.toString()}, 'thisismynewlearningcourse')
 
-    user.tokens = user.tokens.concat({ token })
+    user.tokens = user.tokens.concat({token})
     await user.save()
 
     return token
 }
 
 userSchema.statics.findByCredentials = async (email, password) => {
-    const user = await User.findOne({ email })
+    const user = await User.findOne({email})
 
-    if(!user) {
+    if (!user) {
         throw new Error("Unable to login")
     }
 
     const isMatch = await bcrypt.compare(password, user.password)
 
-    if(!isMatch) {
+    if (!isMatch) {
         throw new Error("Unable to login")
     }
 
@@ -98,10 +101,10 @@ userSchema.statics.findByCredentials = async (email, password) => {
 }
 
 //Hash the plain text password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
     const user = this
 
-    if(user.isModified('password')) {
+    if (user.isModified('password')) {
         user.password = await bcrypt.hash(user.password, 8)
     }
 
@@ -109,7 +112,7 @@ userSchema.pre('save', async function(next) {
 })
 
 //Delete the user tasks when the user is deleted
-userSchema.pre('remove', async function(next) {
+userSchema.pre('remove', async function (next) {
     const user = this
     await Task.deleteMany({owner: user._id})
     next()
