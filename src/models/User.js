@@ -5,8 +5,6 @@ const jwt = require('jsonwebtoken')
 
 const Task = require('./Task')
 
-require('dotenv').config()
-
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
